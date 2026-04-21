@@ -89,7 +89,10 @@ class StatusBar(Widget):
         text.append(f"  {name}", style=Style(color=_BAR_FG, bgcolor=_BAR_BG))
         
         buildStatus = getattr(self._app, "_buildStatus", "")
-        pluginSegs = pluginLoader.statusbarSegments(self._app)
+        if pluginLoader:
+            pluginSegs = pluginLoader.statusbarSegments(self._app)
+        else:
+            pluginSegs = []
         pos = f" {buf.cursor_row + 1}:{buf.cursor_col + 1} "
         segText = "".join(f"  {t}  " for t, _ in pluginSegs)
         statusLen = (len(f"  {buildStatus}  ") if buildStatus else 0) + len(segText)

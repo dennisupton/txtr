@@ -59,6 +59,7 @@ class WordCountPlugin(PluginBase):
         {"key": "count_math", "default": False, "description": "include math regions in the word count instead of ignoring them"},
     ]
 
+    count = 0
     def on_load(self, app):
         registry.register(
             ":wordcount",
@@ -74,11 +75,14 @@ class WordCountPlugin(PluginBase):
         try:
             if not self.config("statusbar", True):
                 return None
-            stats = _latexWordStats("\n".join(app.buffer.lines), count_math=self.config("count_math", False))
+            stats = count 
             return (f"{stats['words']}w", _theme.fg_dim)
         except Exception:
             return None
 
+    def textUpdate(self,app):
+        count = _latexWordStats(getRawBuffer(app), count_math=self.config("count_math", False))
+        
     def _cmd_wordcount(self, app, args):
         try:
             text = "\n".join(self.context(app).selected_lines or app.buffer.lines)

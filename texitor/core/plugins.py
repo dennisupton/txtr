@@ -25,6 +25,7 @@ REGISTRY_URL = "https://raw.githubusercontent.com/benjibrown/txtr/main/plugin-re
 
 _ENTRY_POINTS = ("__init__.py", "plugin.py", "main.py")
 
+pluginLoader = None
 
 @dataclass
 class PluginContext:
@@ -86,6 +87,19 @@ class PluginBase:
     def context(self, app):
         return pluginContext(app)
 
+    def getRawBuffer(self, app):
+        return "\n".join(app.buffer.lines)
+    
+    def getBufferLines(self, app):
+        return app.buffer.lines
+    
+    def getLine(self, app,line):
+        return app.buffer.lines[line]
+    
+    def insert(self, app, text, position:tuple):
+        line = app.buffer.lines[position[0]] 
+        app.buffer.lines[position[0]] = f"{line[:position[1]]}{text}{line[position[1]:]}"
+        
     def notify(self, app, message, severity="information", timeout=3):
         app.notify(message, severity=severity, timeout=timeout)
 
@@ -110,8 +124,9 @@ class PluginBase:
 
 class PluginLoader:
 
-    def __init__(self):
+    def __init__(self,app):
         self._loaded: dict[str, PluginBase] = {}
+        self.app = app
 
     def _loadedKey(self, name: str):
         if name in self._loaded:
@@ -260,6 +275,13 @@ class PluginLoader:
             except Exception:
                 pass
         return segments
+    
+    def textUpdate(self):
+        for p in self._loaded.values():
+            try:
+                p.textUpdate(self.app)
+            except Exception:
+                pass
 
     def availableOnDisk(self) -> list[str]:
         return [meta["name"] for meta in self.installedMetadata()]
@@ -541,4 +563,4 @@ def _builtinNames() -> list[str]:
     return [meta["name"] for meta in ( _metadataForPath(path, is_pkg) for path, is_pkg in _scanPluginCandidates(_builtinDir()) )]
 
 
-pluginLoader = PluginLoader()
+

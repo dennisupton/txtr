@@ -30,7 +30,7 @@ import texitor.core.recents as _recents
 from texitor.latex.snippets import SnippetManager
 from texitor.latex.completer import LatexCompleter
 from texitor.core.citecompleter import CiteCompleter
-from texitor.core.plugins import pluginLoader, PLUGIN_DIR, readMetadata
+from texitor.core.plugins import pluginLoader,PluginLoader, PLUGIN_DIR, readMetadata
 
 import re
 
@@ -169,6 +169,8 @@ class TxtrApp(ActionsMixin, CommandsMixin, KeybindCommandsMixin, App): # i love 
         self.buffer = Buffer()
         self.msm = ModeStateMachine()
         self.keybinds = KeybindRegistry()
+        global pluginLoader
+        pluginLoader = PluginLoader(self)
         self._yank = []
         self.visual_anchor = None
         self._commandSourceMode = None
@@ -226,6 +228,8 @@ class TxtrApp(ActionsMixin, CommandsMixin, KeybindCommandsMixin, App): # i love 
             self.buffer.load(filename)
             _recents.push(filename)
             self._loadBibsForFile(filename)
+        
+        
 
     def compose(self) -> ComposeResult: # peak
         yield EditorWidget(self.buffer, self.msm, self)
@@ -266,7 +270,8 @@ class TxtrApp(ActionsMixin, CommandsMixin, KeybindCommandsMixin, App): # i love 
         if self._watchTask and not self._watchTask.done():
             self._watchTask.cancel()
         self._stopBibAutoscan()
-        pluginLoader.unloadAll(self)
+        if pluginLoader:
+            pluginLoader.unloadAll(self)
 
     def plugin_open_panel(self, title, rows, footer=None):
         self._openInfoPanel(title, rows, footer=footer)

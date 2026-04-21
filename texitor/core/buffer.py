@@ -1,7 +1,7 @@
 # core buffer management stuff, this is very much a wip still and doesnt do much without the frontend and parsing of cmds.
 
 from __future__ import annotations
-
+from texitor.core.plugins import pluginLoader
 # buffer is clueless about the frontend btw
 class Buffer:
     def __init__(self):
@@ -27,6 +27,7 @@ class Buffer:
         self._redo.append((list(self.lines), self.cursor_row, self.cursor_col))
         self.lines, self.cursor_row, self.cursor_col = self._undo.pop()
         self.modified = True
+        pluginLoader.textUpdate()
         return True
 
     def redo(self):
@@ -35,6 +36,7 @@ class Buffer:
         self._undo.append((list(self.lines), self.cursor_row, self.cursor_col))
         self.lines, self.cursor_row, self.cursor_col = self._redo.pop()
         self.modified = True
+        pluginLoader.textUpdate()
         return True
 
 
@@ -79,6 +81,7 @@ class Buffer:
         self.cursor_row += len(new) - 1
         self.cursor_col = len(new[-1]) - len(after)
         self.modified = True
+        pluginLoader.textUpdate()
 
     def newline(self):
         line = self.current_line
@@ -89,6 +92,7 @@ class Buffer:
         self.cursor_row += 1
         self.cursor_col = len(indent)
         self.modified = True
+        pluginLoader.textUpdate()
 
     # all this is text deletion stuff
     def backspace(self):
@@ -103,12 +107,14 @@ class Buffer:
             del self.lines[self.cursor_row]
             self.cursor_row -= 1
         self.modified = True
+        pluginLoader.textUpdate()
 
     def delete_char(self):
         line = self.current_line
         if self.cursor_col < len(line):
             self.lines[self.cursor_row] = line[: self.cursor_col] + line[self.cursor_col + 1 :]
             self.modified = True
+            pluginLoader.textUpdate()
 
     def delete_line(self):
         removed = [self.lines.pop(self.cursor_row)]
@@ -117,6 +123,7 @@ class Buffer:
         self.cursor_row = min(self.cursor_row, self.line_count - 1)
         self.cursor_col = min(self.cursor_col, len(self.current_line))
         self.modified = True
+        pluginLoader.textUpdate()
         return removed
 
     # opening and saving files, this is pretty straightforward. we read the whole file into memory, which is fine for small files but might be an issue for larger ones. can optimise later
